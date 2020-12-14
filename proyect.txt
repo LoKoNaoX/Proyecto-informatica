@@ -1,0 +1,19 @@
+-encender led con Gp0			    hecho
+-informar cambios 			    hecho
+-datos DHT 5mins variable (5*60)            hecho 
+-(salida de led al actualizar datos de DHT) 
+-Subida/Bajada PWM gradual cada 10ms	    hecho
+-
+-pulsacion flash encender y apagar, pulsacion doble pwm 100%, pulsacion durante 4s actualizacion hecho
+- Actualizar hecho
+	*Arrancar dispositivo hecho
+	*Ordene por MQTT hecho
+	*Comprobar actualizaciones, default 0 (no se ejecuta), se modifica por mqtt hecho
+
+
+-NODERED
+-Consultas rango fechas
+-Descargar datos
+-log (estado led), errores, interacciones
+
+-Base de datos añadir fecha
