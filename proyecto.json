@@ -1,0 +1,903 @@
+[
+    {
+        "id": "12d119c.2bc5de6",
+        "type": "tab",
+        "label": "proyecto",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "2519637.73a209c",
+        "type": "mqtt in",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "topic": "infind/GRUPO8/conexion",
+        "qos": "2",
+        "broker": "aa38ea6d.8831b8",
+        "x": 219.42855834960938,
+        "y": 106.5714111328125,
+        "wires": [
+            [
+                "12fc25b6.0c4eea"
+            ]
+        ]
+    },
+    {
+        "id": "b17434d0.3f96e8",
+        "type": "mqtt out",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "topic": "infind/GRUPO8/config",
+        "qos": "",
+        "retain": "",
+        "broker": "aa38ea6d.8831b8",
+        "x": 791.8571166992188,
+        "y": 831.142822265625,
+        "wires": []
+    },
+    {
+        "id": "9a199052.debc9",
+        "type": "mqtt in",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "topic": "infind/GRUPO8/led/status",
+        "qos": "2",
+        "broker": "aa38ea6d.8831b8",
+        "x": 214.14288330078125,
+        "y": 225.28570556640625,
+        "wires": [
+            [
+                "3c803ecd.d6bea2"
+            ]
+        ]
+    },
+    {
+        "id": "53ad2ef2.2d92c",
+        "type": "mqtt in",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "topic": "infind/GRUPO8/datos",
+        "qos": "2",
+        "broker": "aa38ea6d.8831b8",
+        "x": 179.5714111328125,
+        "y": 523.4285583496094,
+        "wires": [
+            [
+                "58a0b81.8fc8448",
+                "34dec2d2.1a85fe"
+            ]
+        ]
+    },
+    {
+        "id": "cb64d005.d4b",
+        "type": "ui_slider",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "label": "Intensidad del LED",
+        "tooltip": "",
+        "group": "a129192d.99a7a8",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "outs": "end",
+        "topic": "",
+        "min": 0,
+        "max": "100",
+        "step": 1,
+        "x": 164.1428680419922,
+        "y": 840,
+        "wires": [
+            [
+                "858e1b95.99d7f8"
+            ]
+        ]
+    },
+    {
+        "id": "47ee15bf.07601c",
+        "type": "function",
+        "z": "12d119c.2bc5de6",
+        "name": "conexion",
+        "func": "var conexion = msg.payload.online;\nmsg={\"payload\":conexion, \"topic\":\"Online:\"};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 604.1428833007812,
+        "y": 99.85714340209961,
+        "wires": [
+            [
+                "76fcfbaa.ae48f4"
+            ]
+        ]
+    },
+    {
+        "id": "703917f9.f6ef08",
+        "type": "function",
+        "z": "12d119c.2bc5de6",
+        "name": "datos",
+        "func": "var hum = msg.payload.DHT11.Humedad;\nvar temp = msg.payload.DHT11.Temperatura;\nvar led = msg.payload.LED;\nvar uptime = msg.payload.Uptime;\nvar ssid = msg.payload.WiFi.SSId;\nvar ip = msg.payload.WiFi.IP;\nvar rssi = msg.payload.WiFi.RSSI;\nvar vcc = msg.payload.Vcc;\n\nmsg1={\"payload\":hum, \"topic\":\"humedad\"};\nmsg2={\"payload\":temp, \"topic\":\"temperatura\"};\nmsg3={\"payload\":led, \"topic\":\"LED\"};\nmsg4={\"payload\":uptime, \"topic\":\"Uptime\"};\nmsg5={\"payload\":ssid, \"topic\":\"SSId\"};\nmsg6={\"payload\":ip, \"topic\":\"Direccion IP\"};\nmsg7={\"payload\":rssi, \"topic\":\"RSSI\"};\nmsg8={\"payload\":vcc, \"topic\":\"VCC\"};\n\nreturn [msg1,msg2,msg3,msg4,msg5,msg6,msg7,msg8];",
+        "outputs": 8,
+        "noerr": 0,
+        "x": 484.2856140136719,
+        "y": 516.2857055664062,
+        "wires": [
+            [
+                "25dbc0d9.fa958"
+            ],
+            [
+                "e01b00af.cc995"
+            ],
+            [
+                "abe63ebf.5c13f"
+            ],
+            [
+                "ec5c25cb.43ef38"
+            ],
+            [
+                "db5d1d4c.862cd"
+            ],
+            [
+                "9131c2ea.08b86"
+            ],
+            [
+                "9a160f4.f0b52f"
+            ],
+            [
+                "9216c1b1.625f6"
+            ]
+        ]
+    },
+    {
+        "id": "656470.64964b9",
+        "type": "function",
+        "z": "12d119c.2bc5de6",
+        "name": "led status",
+        "func": "var status = msg.payload.led;\nvar LedDigital = msg.payload.LedDigital;\nmsg1={\"payload\":status, \"topic\":\"Status del LED\"};\nmsg2={\"payload\":LedDigital, \"topic\":\"Status del LED digital\"};\nreturn [msg1,msg2];",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 594.142822265625,
+        "y": 225.857177734375,
+        "wires": [
+            [
+                "f1efb229.0ba7e"
+            ],
+            [
+                "3dee323c.3d717e"
+            ]
+        ]
+    },
+    {
+        "id": "9a160f4.f0b52f",
+        "type": "ui_text",
+        "z": "12d119c.2bc5de6",
+        "group": "663930da.eb534",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "RSSI",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 865.7142753601074,
+        "y": 650.0000219345093,
+        "wires": []
+    },
+    {
+        "id": "ec5c25cb.43ef38",
+        "type": "ui_text",
+        "z": "12d119c.2bc5de6",
+        "group": "663930da.eb534",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Uptime",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 832.8572006225586,
+        "y": 507.14287281036377,
+        "wires": []
+    },
+    {
+        "id": "9131c2ea.08b86",
+        "type": "ui_text",
+        "z": "12d119c.2bc5de6",
+        "group": "663930da.eb534",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Dirección IP",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 868.5714454650879,
+        "y": 597.1428680419922,
+        "wires": []
+    },
+    {
+        "id": "db5d1d4c.862cd",
+        "type": "ui_text",
+        "z": "12d119c.2bc5de6",
+        "group": "663930da.eb534",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "SSId",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 838.5714874267578,
+        "y": 557.1428985595703,
+        "wires": []
+    },
+    {
+        "id": "9216c1b1.625f6",
+        "type": "ui_text",
+        "z": "12d119c.2bc5de6",
+        "group": "663930da.eb534",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "VCC",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 862.8572463989258,
+        "y": 692.8571910858154,
+        "wires": []
+    },
+    {
+        "id": "25dbc0d9.fa958",
+        "type": "ui_gauge",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "group": "663930da.eb534",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Humedad",
+        "label": "%",
+        "format": "{{value}}",
+        "min": "0",
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 831.4285278320312,
+        "y": 357.14283752441406,
+        "wires": []
+    },
+    {
+        "id": "e01b00af.cc995",
+        "type": "ui_gauge",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "group": "663930da.eb534",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Temperatura",
+        "label": "ºC",
+        "format": "{{value}}",
+        "min": "-5",
+        "max": "40",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 844.2857322692871,
+        "y": 397.1428394317627,
+        "wires": []
+    },
+    {
+        "id": "58a0b81.8fc8448",
+        "type": "json",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 364.28568267822266,
+        "y": 524.8571357727051,
+        "wires": [
+            [
+                "703917f9.f6ef08"
+            ]
+        ]
+    },
+    {
+        "id": "f1efb229.0ba7e",
+        "type": "ui_gauge",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "group": "d8a1b96.2719c48",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "LED Status",
+        "label": "units",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#5cd0ff",
+            "#2376df",
+            "#081b90"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 788.4285278320312,
+        "y": 174.00003051757812,
+        "wires": []
+    },
+    {
+        "id": "abe63ebf.5c13f",
+        "type": "ui_text",
+        "z": "12d119c.2bc5de6",
+        "group": "663930da.eb534",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "LED",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 837.1428871154785,
+        "y": 457.1428680419922,
+        "wires": []
+    },
+    {
+        "id": "3c803ecd.d6bea2",
+        "type": "json",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 431.28570556640625,
+        "y": 224.99998474121094,
+        "wires": [
+            [
+                "656470.64964b9"
+            ]
+        ]
+    },
+    {
+        "id": "6800ddff.652b84",
+        "type": "comment",
+        "z": "12d119c.2bc5de6",
+        "name": "Topics en los que se publican",
+        "info": "",
+        "x": 273,
+        "y": 35,
+        "wires": []
+    },
+    {
+        "id": "b1122d16.3c1c",
+        "type": "comment",
+        "z": "12d119c.2bc5de6",
+        "name": "Variables de configuracion (desde el dashboard)",
+        "info": "",
+        "x": 223,
+        "y": 748,
+        "wires": []
+    },
+    {
+        "id": "12fc25b6.0c4eea",
+        "type": "json",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 441,
+        "y": 95,
+        "wires": [
+            [
+                "47ee15bf.07601c"
+            ]
+        ]
+    },
+    {
+        "id": "76fcfbaa.ae48f4",
+        "type": "ui_text",
+        "z": "12d119c.2bc5de6",
+        "group": "cdb62f4c.3cad8",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Online",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 779,
+        "y": 101,
+        "wires": []
+    },
+    {
+        "id": "39fd74bc.c133fc",
+        "type": "function",
+        "z": "12d119c.2bc5de6",
+        "name": "config",
+        "func": "var led=global.get(\"led\");\nvar temp=global.get(\"temp\");\nvar frecled=global.get(\"frecled\");\nvar frecActualizacion=global.get(\"frecActualizacion\");\nvar actualiza=global.get(\"actualiza\");\nvar LedDigital=global.get(\"LedDigital\");\nvar Logica=global.get(\"Logica\");\n\nmsg.payload={\"level\":led,\"frecuencia\":temp,\"frecled\":frecled,\"actualiza\":actualiza,\"frecActualizacion\":frecActualizacion,\"LedDigital\":LedDigital,\"Logica\":Logica};\nglobal.set(\"actualiza\",false);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 563,
+        "y": 834,
+        "wires": [
+            [
+                "b17434d0.3f96e8"
+            ]
+        ]
+    },
+    {
+        "id": "858e1b95.99d7f8",
+        "type": "change",
+        "z": "12d119c.2bc5de6",
+        "name": "led",
+        "rules": [
+            {
+                "t": "set",
+                "p": "led",
+                "pt": "global",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 353,
+        "y": 845,
+        "wires": [
+            [
+                "39fd74bc.c133fc"
+            ]
+        ]
+    },
+    {
+        "id": "84751470.87d568",
+        "type": "change",
+        "z": "12d119c.2bc5de6",
+        "name": "temp",
+        "rules": [
+            {
+                "t": "set",
+                "p": "temp",
+                "pt": "global",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 354,
+        "y": 917,
+        "wires": [
+            [
+                "39fd74bc.c133fc"
+            ]
+        ]
+    },
+    {
+        "id": "cd3d3599.bf3808",
+        "type": "change",
+        "z": "12d119c.2bc5de6",
+        "name": "frecled",
+        "rules": [
+            {
+                "t": "set",
+                "p": "frecled",
+                "pt": "global",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 344,
+        "y": 1000,
+        "wires": [
+            [
+                "39fd74bc.c133fc"
+            ]
+        ]
+    },
+    {
+        "id": "8504e399.14c8e",
+        "type": "ui_text_input",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "label": "Temporización (en segundos)",
+        "tooltip": "",
+        "group": "a129192d.99a7a8",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "number",
+        "delay": 300,
+        "topic": "",
+        "x": 138,
+        "y": 914,
+        "wires": [
+            [
+                "84751470.87d568"
+            ]
+        ]
+    },
+    {
+        "id": "d97dbd22.af207",
+        "type": "ui_text_input",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "label": "Frecuencia del LED (en ms)",
+        "tooltip": "",
+        "group": "a129192d.99a7a8",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "number",
+        "delay": 300,
+        "topic": "",
+        "x": 150,
+        "y": 1004,
+        "wires": [
+            [
+                "cd3d3599.bf3808"
+            ]
+        ]
+    },
+    {
+        "id": "34dec2d2.1a85fe",
+        "type": "debug",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 342,
+        "y": 621,
+        "wires": []
+    },
+    {
+        "id": "b86ebdd4.eed7b",
+        "type": "ui_button",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "group": "a129192d.99a7a8",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Actualizar firmware",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "topic": "",
+        "x": 152,
+        "y": 1073,
+        "wires": [
+            [
+                "d6fea0c7.60e95"
+            ]
+        ]
+    },
+    {
+        "id": "d6fea0c7.60e95",
+        "type": "change",
+        "z": "12d119c.2bc5de6",
+        "name": "actualiza",
+        "rules": [
+            {
+                "t": "set",
+                "p": "actualiza",
+                "pt": "global",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 349,
+        "y": 1071,
+        "wires": [
+            [
+                "39fd74bc.c133fc"
+            ]
+        ]
+    },
+    {
+        "id": "93388227.9417",
+        "type": "ui_text_input",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "label": "Frecuencia de Actualización (en minutos)",
+        "tooltip": "",
+        "group": "a129192d.99a7a8",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "number",
+        "delay": 300,
+        "topic": "",
+        "x": 188,
+        "y": 1146,
+        "wires": [
+            [
+                "411a9e3b.a87c6"
+            ]
+        ]
+    },
+    {
+        "id": "411a9e3b.a87c6",
+        "type": "change",
+        "z": "12d119c.2bc5de6",
+        "name": "frecActualizacion",
+        "rules": [
+            {
+                "t": "set",
+                "p": "frecActualizacion",
+                "pt": "global",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 489,
+        "y": 1150,
+        "wires": [
+            [
+                "39fd74bc.c133fc"
+            ]
+        ]
+    },
+    {
+        "id": "d94a2cd6.7064c",
+        "type": "ui_switch",
+        "z": "12d119c.2bc5de6",
+        "name": "",
+        "label": "LED digital OFF - ON",
+        "tooltip": "",
+        "group": "a129192d.99a7a8",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "",
+        "style": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 166,
+        "y": 1220,
+        "wires": [
+            [
+                "881bf559.a4ed28"
+            ]
+        ]
+    },
+    {
+        "id": "881bf559.a4ed28",
+        "type": "change",
+        "z": "12d119c.2bc5de6",
+        "name": "Led Digital",
+        "rules": [
+            {
+                "t": "set",
+                "p": "LedDigital",
+                "pt": "global",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 326,
+        "y": 1219,
+        "wires": [
+            [
+                "39fd74bc.c133fc"
+            ]
+        ]
+    },
+    {
+        "id": "3dee323c.3d717e",
+        "type": "ui_led",
+        "z": "12d119c.2bc5de6",
+        "group": "d8a1b96.2719c48",
+        "order": 1,
+        "width": "1",
+        "height": "1",
+        "label": "",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "gray",
+                "value": "false",
+                "valueType": "bool"
+            },
+            {
+                "color": "green",
+                "value": "true",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "name": "Led Digital",
+        "x": 786,
+        "y": 241,
+        "wires": []
+    },
+    {
+        "id": "5612d8a7.c73c68",
+        "type": "ui_switch",
+        "z": "12d119c.2bc5de6",
+        "name": "OFF Lógica negativa - ON Lógica positiva",
+        "label": "OFF Lógica negativa - ON Lógica positiva",
+        "tooltip": "",
+        "group": "a129192d.99a7a8",
+        "order": 6,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": "false",
+        "topic": "",
+        "style": "",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 196,
+        "y": 1316,
+        "wires": [
+            [
+                "f7b6dd66.4a40d"
+            ]
+        ]
+    },
+    {
+        "id": "f7b6dd66.4a40d",
+        "type": "change",
+        "z": "12d119c.2bc5de6",
+        "name": "Lógica LED",
+        "rules": [
+            {
+                "t": "set",
+                "p": "Logica",
+                "pt": "global",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 464,
+        "y": 1316,
+        "wires": [
+            [
+                "39fd74bc.c133fc"
+            ]
+        ]
+    },
+    {
+        "id": "aa38ea6d.8831b8",
+        "type": "mqtt-broker",
+        "z": "",
+        "name": "",
+        "broker": "iot.ac.uma.es",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "compatmode": true,
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": ""
+    },
+    {
+        "id": "a129192d.99a7a8",
+        "type": "ui_group",
+        "z": "",
+        "name": "Config",
+        "tab": "d4dd4c29.ed546",
+        "order": 4,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "663930da.eb534",
+        "type": "ui_group",
+        "z": "",
+        "name": "Datos",
+        "tab": "d4dd4c29.ed546",
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "d8a1b96.2719c48",
+        "type": "ui_group",
+        "z": "",
+        "name": "Led",
+        "tab": "d4dd4c29.ed546",
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "cdb62f4c.3cad8",
+        "type": "ui_group",
+        "z": "",
+        "name": "Conexion",
+        "tab": "d4dd4c29.ed546",
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "d4dd4c29.ed546",
+        "type": "ui_tab",
+        "z": "",
+        "name": "Tarea grupal",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
