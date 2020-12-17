@@ -28,7 +28,11 @@ void error_OTA(int);
 ADC_MODE(ADC_VCC);
 // Variable manejadora del sensor DHT
 DHTesp dht;
+//------------------------------------------//
+//---------------VARIABLES -----------------//
+//------------------------------------------//
 
+//-----------------WIFI---------------------//
 const char* ssid = "No_robes_vecino";
 const char* password = "silyconhouse2021";
 
@@ -36,18 +40,30 @@ const char* mqtt_server = "iot.ac.uma.es";
 const char* user="infind";
 const char* pass="zancudo";
 
+
+
+//------------------LED--------------------//
 // Variable en la que se almacenará la intensidad deseada del LED (0-100) que recibamos a 
 // través del topic infind/GRUPO8/led/cmd. Mientras no recibamos nada valdrá 0 (LED apagado)
 int level=0;
-
-//Variable que indica la frecuencia con la que se actualizan los datos
-int Temp = 300000; //ms
-
 //Variables utiles para la configuracion del led
 int PWM;
 int PWMold=0;
 int frecled=10;
+bool Logica=false; //false= negativa, true=positiva
+bool LedDigital=false;
 
+
+//---------------FRECUENCIAS----------------//
+//Variable que indica la frecuencia con la que se actualizan los datos
+int Temp = 300000; //ms
+
+//Variables para comprueboactualizacion
+unsigned long frecActualizacion=0; //frecuencia con la que comprueba si hay una actualizacion
+unsigned long lastActualizacion=0;
+bool actualizaMQTT=false;
+
+//-------------DATOS A PUBLICAR-------------//
 // String de hasta 512 caracteres en el que almacenaremos la estructura JSON con los datos
 // (sensores, Vcc, uptime)... a publicar
 char sdatos[512];
@@ -57,25 +73,18 @@ char sledstatus[256];
 // String de en el que almacenaremos la estructura JSON con el estado de la conexión para pub
 char sconexion[256];
 
+
+//---------------BOTON FLASH--------------//
 //Variables necesarias para controlar el led a traves del boton flash
 int boton_flash=0;       // GPIO0 = boton flash
 int estado_int=HIGH;     // por defecto HIGH (PULLUP). Cuando se pulsa se pone a LOW
 
-volatile unsigned long ultima_int = 0;
-volatile unsigned long ahora=0;
-volatile bool inte=false;
-volatile int lectura;
 bool led_control=true;
 int PWMflash;
 
 
-//Variables para comprueboactualizacion
-unsigned long frecActualizacion=0; //frecuencia con la que comprueba si hay una actualizacion
-unsigned long lastActualizacion=0;
-bool actualizaMQTT=false;
 
-bool LedDigital=false;
-
+//--------------MQTT--------------------//
 // Creamos una instancia de cliente MQTT de tipo WiFi asociada a client
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -83,8 +92,10 @@ PubSubClient client(espClient);
 unsigned long lastMsg = 0;
 unsigned long lastPWM = 0;
 
-//-------------- setup_wifi --------------//
 
+//------------------------------------------//
+//-------------- SETUP WIFI ----------------//
+//------------------------------------------//
 void setup_wifi() 
 {
   delay(10);
@@ -109,8 +120,10 @@ void setup_wifi()
   Serial.println(WiFi.localIP());
 }
 
-//-------------- callback --------------//
 
+//------------------------------------------//
+//----------------CALLBACK------------------//
+//------------------------------------------//
 void callback(char* topic, byte* payload, unsigned int length) 
 {
   // Reservo un espacio en memoria de longitud length+1 para copiar el msg recibido
@@ -278,13 +291,35 @@ void callback(char* topic, byte* payload, unsigned int length)
         {
           Serial.print("Error : ");
           Serial.println("\"LedDigital\" key not found in JSON");
-        } 
+        }
+      
+      
+      //Comprobamos topic de logica positiva o negativa
+      if(root.containsKey("Logica"))
+       {
+           // Guardamos en la vble Actualizacion el valor correspondiente a la clave "frecuencia"
+          Logica = root["Logica"];
+           // Indicamos por pantalla que hemos sido capaces de extraer el valor frecuencia del msg JSON
+           Serial.print("Mensaje OK, Logica= ");
+           if(Logica)Serial.println("Positiva");
+           else Serial.println("Negativa");
+           ControlLogica();
+         }
+        // Si no existe ninguna clave en root que se llame frecuencia, lo indicamos por consola
+        else
+        {
+          Serial.print("Error : ");
+          Serial.println("\"Logica\" key not found in JSON");
+        }
+         
   }
   
 }
 
-//-------------- reconnect --------------//
 
+//------------------------------------------//
+//-----------------RECONNECT----------------//
+//------------------------------------------//
 void reconnect() 
 {
   while (!client.connected()) 
@@ -336,6 +371,10 @@ void reconnect()
     }
   }
 }
+
+//------------------------------------------//
+//-------------ACTUALIZACION----------------//
+//------------------------------------------//
 void actualizar(){
   // ACTUALIZACIÓN OTA
   Serial.println( "--------------------------" );  
@@ -367,8 +406,10 @@ void actualizar(){
   
 }
 
-//-------------- setup --------------//
 
+//------------------------------------------//
+//-------------------SETUP------------------//
+//------------------------------------------//
 void setup() 
 {
   pinMode(16, OUTPUT);
@@ -384,36 +425,50 @@ void setup()
   Serial.begin(115200);
   Serial.println();
   LED();
-  
+  digitalWrite(16,LedDigital);
   button.setClickHandler(handler);
   button.setDoubleClickHandler(handler);
   button.setTripleClickHandler(handler);
   button.setLongClickHandler(longpress);
 }
 
-//---------Funciones Utiles---------//
 
+//------------------------------------------//
+//-------------FUNCIONES UTILES-------------//
+//------------------------------------------//
+//-----------CONTROL LOGICA-----------------//
+void ControlLogica(){
+  if(Logica){
+  PWM =level*1023/100;
+    }
+  else{
+    PWM =1023-(level*1023/100);
+    LedDigital=!LedDigital;
+    }
+  
+  }
+  
+//--------------CONTROL LED-----------------//
 void LED(){
   // Actualizamos constantentemente el valor PWM que estamos mandando al LED, para que
   // si llega un nuevo valor de level, actualicemos el brillo del LED
   // El analogWrite tenemos que llamarlo con un valor PWM entre 0 y 1023: [0,100]->[0-1023]
   // Además, el LED funciona con lógica negativa: 1023->0 y 0->1023
-  PWM = 1023-(level*1023/100);
-  Serial.print("HOLA Q ASE HE ENTRAO NINIO");
-  if(LedDigital)digitalWrite(16,HIGH);
-  else digitalWrite(16,LOW);
+  ControlLogica();
+  digitalWrite(16,LedDigital);
   // Formateamos el msg a publicar en la estructura JSON ledstatus
   StaticJsonDocument<256> ledstatus;
   // Creamos la clave "led" y le asociamos el valor de led
   ledstatus["led"]=level;
-  ledstatus["LedDigital"]=LedDigital;
+  if(Logica)ledstatus["LedDigital"]=LedDigital;
+  else ledstatus["LedDigital"]=!LedDigital;
   // Serializamos la estructura JSON ledstatus en el string sledstatus y lo publicamos  
   serializeJson(ledstatus, sledstatus);
   client.publish("infind/GRUPO8/led/status",sledstatus);
 }
 
-//----controlador led a traves del flash----//
-
+//----CONTROLADOR DEL LED POR EL FLASH------//
+//...longpress..............................//
 void longpress(Button2& btn) {
     unsigned int time = btn.wasPressedFor();
     Serial.print("You clicked ");
@@ -424,7 +479,7 @@ void longpress(Button2& btn) {
     Serial.print(time);        
     Serial.println(" ms)");
 }
-
+//...click/double click..................//
 void handler(Button2& btn) {
     switch (btn.getClickType()) {
         case SINGLE_CLICK:
@@ -468,17 +523,10 @@ void handler(Button2& btn) {
     Serial.println(")");
 }
 
-//funcion auxiliar para actualizar
-/*void comprueboactualizacion(){
-  if(actualizaMQTT || now-lastActualizacion>frecActualizacion){
-    if(frecActualiza==0)return;
-    lastActualizacion=now;
-    actualizaMQTT=false;
-    actualizar();
-  }
-}*/
 
-//-------------- loop --------------//
+//------------------------------------------//
+//--------------------LOOP------------------//
+//------------------------------------------//
 
 void loop() 
 {
