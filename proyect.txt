@@ -3,7 +3,7 @@
 -datos DHT 5mins variable (5*60)            hecho 
 -(salida de led al actualizar datos de DHT) 
 -Subida/Bajada PWM gradual cada 10ms	    hecho
--
+-	hecho
 -pulsacion flash encender y apagar, pulsacion doble pwm 100%, pulsacion durante 4s actualizacion hecho
 - Actualizar hecho
 	*Arrancar dispositivo hecho
