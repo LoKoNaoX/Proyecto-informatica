@@ -1,22 +1,22 @@
 #include <ESP8266WiFi.h>
-#include <PubSubClient.h>
-#include "DHTesp.h"
-// Librería necesaria para la serialización/deserialización de msgs en JSON
-#include <ArduinoJson.h>
-// Librería necesaria para realizar las actualizaciones de software de forma inalámbrica
-#include <ESP8266httpUpdate.h>
-#include "Button2.h";
+#include <PubSubClient.h> //Librería para la conexion MQTT
+#include "DHTesp.h" //Librería del sensor DHT para las temperatura, humedada, presion
+#include <ArduinoJson.h> // Librería necesaria para la serialización/deserialización de msgs en JSON
+#include <ESP8266httpUpdate.h> // Librería necesaria para realizar las actualizaciones de software de forma inalámbrica
+#include "Button2.h"; //Librería necesaria para interaccionar con bottones de manera mas sencilla
 
 // URL del servidor de actualizaciones: http://localhost:1880/esp8266-ota
-
+//------------------------------------------//
+//---------------CONSTANTES-----------------//
+//------------------------------------------//
 // Datos para actualización   >>>> SUSTITUIR IP <<<<<
 #define HTTP_OTA_ADDRESS      F("192.168.1.113")       // Address of OTA update server
 #define HTTP_OTA_PATH         F("/esp8266-ota/update") // Path to update firmware
 #define HTTP_OTA_PORT         1880                     // Port of update server                                                      
 #define HTTP_OTA_VERSION      String(__FILE__).substring(String(__FILE__).lastIndexOf('\\')+1) + ".nodemcu" // Name of firmware
 
-#define BUTTON_PIN  0
-Button2 button = Button2(BUTTON_PIN);
+#define BUTTON_PIN  0 //definicion para el botton flash
+Button2 button = Button2(BUTTON_PIN); 
 
 // Funciones necesarias para la actualización OTA
 void progreso_OTA(int,int);
@@ -25,9 +25,10 @@ void inicio_OTA();
 void error_OTA(int);
 
 // Línea necesaria para leer el voltaje Vcc observado en la entrada de alimentación
-ADC_MODE(ADC_VCC);
+//  ADC_MODE(ADC_VCC);
 // Variable manejadora del sensor DHT
 DHTesp dht;
+
 //------------------------------------------//
 //---------------VARIABLES -----------------//
 //------------------------------------------//
@@ -40,7 +41,8 @@ const char* mqtt_server = "iot.ac.uma.es";
 const char* user="infind";
 const char* pass="zancudo";
 
-
+//--------ENVIAR DATOS AL ENCENDER---------//
+bool PrimeraVez=true;
 
 //------------------LED--------------------//
 // Variable en la que se almacenará la intensidad deseada del LED (0-100) que recibamos a 
@@ -92,6 +94,9 @@ PubSubClient client(espClient);
 unsigned long lastMsg = 0;
 unsigned long lastPWM = 0;
 
+
+//------------NIVEL AGUA----------------//
+int NivelAgua;
 
 //------------------------------------------//
 //-------------- SETUP WIFI ----------------//
@@ -158,15 +163,18 @@ void callback(char* topic, byte* payload, unsigned int length)
     }
     // Si no hubo error,
     else{
-
+       //...................................................//
+       //.............FRECUENCIA ENVIO DE DATOS.............//
+       //...................................................//
        //comprobamos si el objeto son los datos de la frecuencia de actualizacion
-       // Compruebo si la estruct JSON root, contiene la clave (campo) que estamos buscando
+       // Compruebo si la estruct JSON root, contiene la clave frecuencia que estamos buscando
+       
        if(root.containsKey("frecuencia"))
        {
-         // Comprobamos que el valor de level está dentro del rango para un correcto funcionamiento
+         // Comprobamos que el valor de frecuencia está dentro del rango para un correcto funcionamiento
          if (root["frecuencia"]>=2)
          {
-           // Guardamos en la vble level el valor correspondiente a la clave "frecuencia"
+           // Guardamos en la vble Temp el valor correspondiente a la clave "frecuencia"
            Temp = root["frecuencia"];
            Temp = Temp*1000;
            // Indicamos por pantalla que hemos sido capaces de extraer el valor frecuencia del msg JSON
@@ -174,7 +182,7 @@ void callback(char* topic, byte* payload, unsigned int length)
            Serial.println(Temp);
          }
          else{
-          Serial.println("El valor de \"frecuencia\" recibido es un numero negativo");
+          Serial.println("El valor de \"frecuencia de envio de datos\" recibido es un numero negativo");
           }
           
         }
@@ -182,39 +190,40 @@ void callback(char* topic, byte* payload, unsigned int length)
         else
         {
           Serial.print("Error : ");
-          Serial.println("\"frecuencia\" key not found in JSON");
+          Serial.println("\"frecuencia de envio de datos\" key not found in JSON");
         } 
-
-      
+       //...................................................//
+       //................FRECUENCIA PWM LED.................//
+       //...................................................//             
        //comprobamos si el objeto son los datos de la frecuencia del led
-       
-       // Compruebo si la estruct JSON root, contiene la clave (campo) que estamos buscando
+       // Compruebo si la estruct JSON root, contiene la clave fecled que estamos buscando
        if(root.containsKey("frecled"))
        {
-         // Comprobamos que el valor de level está dentro del rango para un correcto funcionamiento
+         // Comprobamos que el valor de frecled está dentro del rango para un correcto funcionamiento
          if (root["frecled"]>=0)
          {
-           // Guardamos en la vble level el valor correspondiente a la clave "frecuencia"
+           // Guardamos en la vble frecled el valor correspondiente a la clave "frecled"
            frecled = root["frecled"];
-           // Indicamos por pantalla que hemos sido capaces de extraer el valor frecuencia del msg JSON
+           // Indicamos por pantalla que hemos sido capaces de extraer el valor frecled del msg JSON
            Serial.print("Mensaje OK, frecuencia del led = ");
            Serial.println(frecled);
          }
          else{
-          Serial.println("El valor de \"frecuencia\" recibido es un numero negativo");
+          Serial.println("El valor de \"frecuencia led\" recibido es un numero negativo");
           }
           
         }
-        // Si no existe ninguna clave en root que se llame frecuencia, lo indicamos por consola
+        // Si no existe ninguna clave en root que se llame frecled, lo indicamos por consola
         else
         {
           Serial.print("Error : ");
-          Serial.println("\"frecuencia\" key not found in JSON");
+          Serial.println("\"frecuencia led\" key not found in JSON");
         } 
-      
+       //...................................................//        
+       //................INTENSIDAD LED.....................//      
+       //...................................................//
       //comprobamos si el objeto son los datos del LED
-      
-      // Compruebo si la estruct JSON root, contiene la clave (campo) que estamos buscando (led)
+      // Compruebo si la estruct JSON root, contiene la clave level que estamos buscando
       if(root.containsKey("level"))
       {
         // Comprobamos que el valor de level está dentro del rango para un correcto funcionamiento
@@ -223,45 +232,51 @@ void callback(char* topic, byte* payload, unsigned int length)
           // Guardamos en la vble level el valor correspondiente a la clave "level"
           level = root["level"];
           // Indicamos por pantalla que hemos sido capaces de extraer el valor level del msg JSON
-          Serial.print("Mensaje OK, level = ");
+          Serial.print("Mensaje OK, intensidad del led = ");
           Serial.println(level);
-          LED();
+          LED(); //Llamamos a la funcion led para que actualice el PWM
         }
         else{
-          Serial.println("El valor de \"level\" recibido está fuera del rango 0-100");
+          Serial.println("El valor de \"intensidad del led\" recibido está fuera del rango 0-100");
         }
       }
       // Si no existe ninguna clave en root que se llame level, lo indicamos por consola
       else
       {
         Serial.print("Error : ");
-        Serial.println("\"level\" key not found in JSON");
+        Serial.println("\"intensidad del\" key not found in JSON");
       }
+      //...................................................//
+      //................ACTUALIZACION......................//
+      //...................................................//
       if(root.containsKey("actualiza"))
        {
-           // Guardamos en la vble Actualizacion el valor correspondiente a la clave "frecuencia"
+           // Guardamos en la vble Actualizacion el valor correspondiente a la clave "actualiza"
            actualizaMQTT = root["actualiza"];
-           // Indicamos por pantalla que hemos sido capaces de extraer el valor frecuencia del msg JSON
+           // Indicamos por pantalla que hemos sido capaces de extraer el valor actualiza del msg JSON
            Serial.print("Mensaje OK, actualiza = ");
            Serial.println(actualizaMQTT);
          }
-        // Si no existe ninguna clave en root que se llame frecuencia, lo indicamos por consola
+        // Si no existe ninguna clave en root que se llame actualiza, lo indicamos por consola
         else
         {
           Serial.print("Error : ");
           Serial.println("\"Actualizacion\" key not found in JSON");
         }   
     }
-          // Compruebo si la estruct JSON root, contiene la clave (campo) que estamos buscando (led)
+    //...................................................//
+    //...........FRECUENCIA ACTUALIZACION................//
+    //...................................................//
+    // Compruebo si la estruct JSON root, contiene la clave frecActualizacion que estamos buscando
       if(root.containsKey("frecActualizacion"))
       {
-        // Comprobamos que el valor de level está dentro del rango para un correcto funcionamiento
+        // Comprobamos que el valor de frecActualizacion está dentro del rango para un correcto funcionamiento
         if (root["frecActualizacion"]>=0)
         {
-          // Guardamos en la vble level el valor correspondiente a la clave "level"
+          // Guardamos en la vble frecActualizacion el valor correspondiente a la clave "frecActualizacion"
           frecActualizacion = root["frecActualizacion"];
           frecActualizacion=frecActualizacion*60000;//Para pasarlo a minutos 
-          // Indicamos por pantalla que hemos sido capaces de extraer el valor level del msg JSON
+          // Indicamos por pantalla que hemos sido capaces de extraer el valor frecActualizacion del msg JSON
           Serial.print("Mensaje OK, frecActualizacion = ");
           Serial.println(frecActualizacion);
         }
@@ -275,37 +290,41 @@ void callback(char* topic, byte* payload, unsigned int length)
         Serial.print("Error : ");
         Serial.println("\"frecActualizacion\" key not found in JSON");
       }
-
+      //...................................................//
+      //..............CONTROL LED DIGITAL..................//
+      //...................................................//
       //Comprobamos topic de led Digital
       if(root.containsKey("LedDigital"))
        {
-           // Guardamos en la vble Actualizacion el valor correspondiente a la clave "frecuencia"
+           // Guardamos en la vble LedDigital el valor correspondiente a la clave "LedDigital"
            LedDigital = root["LedDigital"];
-           // Indicamos por pantalla que hemos sido capaces de extraer el valor frecuencia del msg JSON
+           // Indicamos por pantalla que hemos sido capaces de extraer el valor LedDigital del msg JSON
            Serial.print("Mensaje OK, Led digital = ");
            Serial.println(LedDigital);
-           LED();
+           LED(); //Actuliza los paramentros
          }
-        // Si no existe ninguna clave en root que se llame frecuencia, lo indicamos por consola
+        // Si no existe ninguna clave en root que se llame LedDigital, lo indicamos por consola
         else
         {
           Serial.print("Error : ");
           Serial.println("\"LedDigital\" key not found in JSON");
         }
       
-      
+      //...................................................//
+      //...............CONFIGURACION LOGICA................//
+      //...................................................//
       //Comprobamos topic de logica positiva o negativa
       if(root.containsKey("Logica"))
        {
-           // Guardamos en la vble Actualizacion el valor correspondiente a la clave "frecuencia"
+           // Guardamos en la vble Logica el valor correspondiente a la clave "Logica"
           Logica = root["Logica"];
-           // Indicamos por pantalla que hemos sido capaces de extraer el valor frecuencia del msg JSON
+           // Indicamos por pantalla que hemos sido capaces de extraer el valor Logica del msg JSON
            Serial.print("Mensaje OK, Logica= ");
            if(Logica)Serial.println("Positiva");
            else Serial.println("Negativa");
            ControlLogica();
          }
-        // Si no existe ninguna clave en root que se llame frecuencia, lo indicamos por consola
+        // Si no existe ninguna clave en root que se llame Logica, lo indicamos por consola
         else
         {
           Serial.print("Error : ");
@@ -419,10 +438,8 @@ void setup()
   dht.setup(5, DHTesp::DHT11);
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
-  // Establecemos el tamaño del buffer para el manejo de msgs MQTT a 512 (msgs largos)
-  client.setBufferSize(512);
+  client.setBufferSize(512);      // Establecemos el tamaño del buffer para el manejo de msgs MQTT a 512 (msgs largos)
   actualizar();
-  Serial.begin(115200);
   Serial.println();
   LED();
   digitalWrite(16,LedDigital);
@@ -436,6 +453,7 @@ void setup()
 //------------------------------------------//
 //-------------FUNCIONES UTILES-------------//
 //------------------------------------------//
+
 //-----------CONTROL LOGICA-----------------//
 void ControlLogica(){
   if(Logica){
@@ -538,8 +556,9 @@ void loop()
   button.loop();
   
   unsigned long now = millis();  
-  if (now - lastMsg > Temp) 
+  if (now - lastMsg > Temp || PrimeraVez) 
   {
+    PrimeraVez=false;
     lastMsg = now;
 
     // Leemos los datos del sensor
@@ -556,13 +575,20 @@ void loop()
     // valor de tipo IPAddress -> lo pasamos a string
     String IP = WiFi.localIP().toString();
 
+    NivelAgua=analogRead(A0); //Nos muestra el nivel del agua del recipiente que viene del Aire acondicionado
+    //Como los datos de este sensor muestran numeros de 0 a 500 hacemos un escalado para obtener un %
+    NivelAgua=NivelAgua/5;
+    if(NivelAgua>=100)NivelAgua=100;
+    if(NivelAgua<=0)NivelAgua=0;
+    
     // Formateamos los datos a publicar en la estructura JSON datos
     StaticJsonDocument<512> datos;
 
     // El campo Uptime es el número de ms desde que se inició la placa
     datos["Uptime"] = now;
-    datos["Vcc"] = vcc;
+   // datos["Vcc"] = vcc;
     datos["LED"] = level;
+    datos["NivelAgua"]=NivelAgua;
 
     // Creamos el objeto anidado dht11, perteneciente a la estructura JSON datos
     JsonObject dht11 = datos.createNestedObject("DHT11");
@@ -580,13 +606,7 @@ void loop()
     client.publish("infind/GRUPO8/datos",sdatos);
   }
 
-  //Se llama a las funciones utiles para obtener el estado de los sensores/actuadores
-  /*Serial.print("\n");
-  Serial.print(PWM);
-  Serial.print("     ");
-  Serial.print(PWMold);
-  Serial.print("\n");
-  */
+  //Condiciones que cambian el estado del led (PWM)
   if(PWMold<=PWM && now - lastPWM  > frecled){     
     lastPWM=now;
     PWMold++;
@@ -598,10 +618,9 @@ void loop()
     PWMold--;
     analogWrite(2,PWMold);
   }  
- 
-  //comprueboactualizacion();
+//Coondiciones para actualizar segun variables recibidas por MQTT (tiempo o boton)
     if(actualizaMQTT || now-lastActualizacion>frecActualizacion){
-      if(frecActualizacion==0 && actualizaMQTT==false)return;
+      if(frecActualizacion==0 && actualizaMQTT==false)return; // Condicion que evita la actualizacion si el tiempo de actualizacion es = 0
       lastActualizacion=now;
       actualizaMQTT=false;
       actualizar();
